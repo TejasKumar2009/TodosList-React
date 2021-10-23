@@ -80,7 +80,7 @@ input:focus {
   justify-content: space-around;
 }
 
-.fas{
+.fa-edit, .fa-trash-alt{
 margin: 0 6rem;
 margin-left: 3rem;
 }

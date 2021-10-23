@@ -19,23 +19,44 @@ const Todos = () => {
     value: false,
     color: "",
   });
+  const [toggleEditIcon, setToggleEditIcon] = useState(false);
+  const [editTodoId, setEditTodoId] = useState(null);
 
   const onChangeInput = (e) => {
     setTodoInput(e.target.value);
   };
 
   const addTodo = () => {
-    if (todoInput) {
-      setTodosList([...todosList, todoInput]);
-      setTodoInput("");
-      setShowAlert({ value: false });
-    } else {
+    if (!todoInput) {
       setShowAlert({
         title: "Oops! Please, Enter Something!!",
         value: true,
         color: "red",
       });
+    } else if (todoInput && toggleEditIcon) {
+      setTodosList([...todosList, todoInput]);
+      setTodosList(
+        todosList.map((value, index) => {
+          if (index === editTodoId) {
+            return { ...value, todo: todoInput };
+          }
+          return value;
+        })
+      );
+      setToggleEditIcon(false);
+      setShowAlert({
+        title: "Your Todo Updated Successfully!!",
+        value: true,
+        color: "green",
+      });
+    } else {
+      const allTodosData = {
+        id: new Date().getTime().toString(),
+        todo: todoInput,
+      };
+      setTodosList([...todosList, allTodosData]);
     }
+    setTodoInput("");
   };
 
   const deleteTodo = (id) => {
@@ -46,6 +67,15 @@ const Todos = () => {
   };
 
   const deleteAllTodos = () => setTodosList([]);
+
+  const editTodo = (id) => {
+    setToggleEditIcon(true);
+    let newEditTodo = todosList.find((value, index) => {
+      return index === id;
+    });
+    setTodoInput(newEditTodo.todo);
+    setEditTodoId(id);
+  };
 
   useEffect(() => {
     localStorage.setItem("todos", JSON.stringify(todosList));
@@ -72,11 +102,19 @@ const Todos = () => {
                 type="text"
                 placeholder="✍ Add Items..."
               />
-              <i
-                onClick={addTodo}
-                className="fa fa-plus add-btn"
-                title="Add Item"
-              ></i>
+              {toggleEditIcon ? (
+                <i
+                  onClick={addTodo}
+                  className="fas fa-edit add-btn"
+                  title="Edit Item"
+                ></i>
+              ) : (
+                <i
+                  onClick={addTodo}
+                  className="fa fa-plus add-btn"
+                  title="Add Item"
+                ></i>
+              )}
             </form>
           </div>
 
@@ -87,7 +125,7 @@ const Todos = () => {
           ) : null}
           <div className="showItems">
             {todosList.length === 0 ? (
-              <h1 style={{color: "white"}}>No Todos To Display!</h1>
+              <h1 style={{ color: "white" }}>No Todos To Display!</h1>
             ) : (
               <>
                 {todosList.map((value, index) => (
@@ -96,13 +134,15 @@ const Todos = () => {
                     index={index}
                     value={value}
                     deleteTodo={deleteTodo}
+                    editTodo={editTodo}
+                    addTodo={addTodo}
                   />
                 ))}
               </>
             )}
             <div className="showItems">
               <button
-              disabled={todosList.length===0}
+                disabled={todosList.length === 0}
                 onClick={deleteAllTodos}
                 className="btn effect04"
                 data-sm-link-text="Remove All"
